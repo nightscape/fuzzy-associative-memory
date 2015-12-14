@@ -17,7 +17,6 @@ class FuzzyAssociativeMemory::Ruleset
     @name  = name
     @rules = []
     @implication = implication_mechanism
-    @consequent_mus   = {}
   end
 
   def add_rule(rule)
@@ -25,6 +24,7 @@ class FuzzyAssociativeMemory::Ruleset
   end
 
   def calculate(*input_values)
+    consequent_mus   = {}
     # puts ">>> Firing all rules..." if $verbosity
     for rule in @rules
       # Fire each rule to determine the µ value (degree of fit).
@@ -38,8 +38,8 @@ class FuzzyAssociativeMemory::Ruleset
       # need to get just a single µ value out -- we only care about the 'best'
       # µ. A popular way of doing so is to OR the values together, i.e. keep the
       # maximum µ value and discard the others.
-      curr_best = @consequent_mus[cons]
-      @consequent_mus[cons] = mu if curr_best.nil? || mu > curr_best
+      curr_best = consequent_mus[cons]
+      consequent_mus[cons] = mu if curr_best.nil? || mu > curr_best
     end
 
     # Using each µ value, alter the consequent fuzzy set's polgyon. This is
@@ -49,7 +49,7 @@ class FuzzyAssociativeMemory::Ruleset
     numerator=0
     denominator=0
 
-    @consequent_mus.each do |cons, mu|
+    consequent_mus.each do |cons, mu|
       case @implication
       when :larsen
         tmp = cons.larsen(mu)
@@ -69,8 +69,6 @@ class FuzzyAssociativeMemory::Ruleset
       numerator += tmp.centroid_x * tmp.height
       denominator += tmp.height
     end
-
-    @consequent_mus={}
 
     return numerator/denominator
   end
